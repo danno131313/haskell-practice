@@ -34,7 +34,7 @@ gameWords = do
     aw <- allWords
     return (filter correctLength aw)
     where correctLength word =
-            let l = length (w :: String)
+            let l = length (word :: String)
             in  l >= minWordLength
              && l <= maxWordLength
 
@@ -49,6 +49,29 @@ randomWord' = gameWords >>= randomWord
 freshPuzzle :: String -> Puzzle
 freshPuzzle word = Puzzle word guessed []
     where guessed = fmap (const Nothing) word
+
+charInWord :: Puzzle -> Char -> Bool
+charInWord (Puzzle word _ _ ) char =
+    char `elem` word
+
+alreadyGuessed :: Puzzle -> Char -> Bool
+alreadyGuessed (Puzzle _ _ guessed) char =
+    char `elem` guessed
+
+renderPuzzleChar :: Maybe Char -> Char
+renderPuzzleChar char = case char of
+                          Nothing -> '_'
+                          Just c  -> c
+
+fillInChar :: Puzzle -> Char -> Puzzle
+fillInChar (Puzzle word discovered guessed) char =
+    Puzzle word newDiscovered (char : guessed)
+        where newDiscovered = 
+                zipWith (zipper char) word discovered
+              zipper guessChar wordChar discoveredChar =
+                if wordChar == guessChar
+                then Just wordChar
+                else discoveredChar
 
 main :: IO ()
 main = putStrLn "hello world"
